@@ -111,6 +111,7 @@ private:
     : m_Thread(0), m_Name(name), m_SocketFd(-1)
   {
     const int canfd_on = 1;
+    const int recv_own_msgs = 1; /* 0 = disabled (default), 1 = enabled */
     m_SocketFd = socket(PF_CAN, SOCK_RAW, protocol);
     m_ThreadStopRequested = false;
     m_TimestampsSupported = timestamps;
@@ -131,6 +132,8 @@ private:
       /* try to switch the socket into CAN FD mode */
       setsockopt(m_SocketFd, SOL_CAN_RAW, CAN_RAW_FD_FRAMES, &canfd_on, sizeof(canfd_on));
 
+      if (setsockopt(m_SocketFd, SOL_CAN_RAW, CAN_RAW_RECV_OWN_MSGS, &recv_own_msgs, sizeof(recv_own_msgs)) != 0)
+        goto on_error;
       if (setsockopt(m_SocketFd, SOL_CAN_RAW, CAN_RAW_ERR_FILTER, &err_mask, sizeof(err_mask)) != 0)
         goto on_error;
 
